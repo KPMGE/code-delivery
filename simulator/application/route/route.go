@@ -10,9 +10,9 @@ import (
 )
 
 type Route struct {
-	ClientID  string `json:"clientId"`
-	ID        string `json:"id"`
-	Positions []Position
+	ClientID  string     `json:"clientId"`
+	ID        string     `json:"routeId"`
+	Positions []Position `json:"positions"`
 }
 
 type Position struct {
@@ -64,28 +64,28 @@ func (r *Route) LoadPositions() error {
 }
 
 func (r *Route) ExportPositionsAsJson() ([]string, error) {
-  var jsonPositions []string
+	var jsonPositions []string
 
 	for i, p := range r.Positions {
-    partialPos := PartialRoutePosition {
-      ID: r.ID,
-      ClientID: r.ClientID,
-      Finished: false,
-      Position: [2]float64{p.Lat, p.Long},
-    }
+		partialPos := PartialRoutePosition{
+			ID:       r.ID,
+			ClientID: r.ClientID,
+			Finished: false,
+			Position: [2]float64{p.Lat, p.Long},
+		}
 
-    if i == len(r.Positions) - 1 {
-      partialPos.Finished = true
-    }
+		if i == len(r.Positions)-1 {
+			partialPos.Finished = true
+		}
 
-    jsonPos, err := json.Marshal(partialPos)
+		jsonPos, err := json.Marshal(partialPos)
 
-    if err != nil {
-      return nil, err
-    }
+		if err != nil {
+			return nil, err
+		}
 
-    jsonPositions = append(jsonPositions, string(jsonPos))
+		jsonPositions = append(jsonPositions, string(jsonPos))
 	}
-  
-  return jsonPositions, nil
+
+	return jsonPositions, nil
 }
