@@ -36,7 +36,7 @@ func (k *KafkaConsumer) Consume() {
 
   for {
     msg, err := c.ReadMessage(-1)
-    if err != nil {
+    if err == nil {
       k.MsgChan <- msg
     }
   }

@@ -4,23 +4,26 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/KPMGE/code-delivery/application/route"
+	"github.com/KPMGE/code-delivery/infra/kafka"
+	kafkaprod "github.com/KPMGE/code-delivery/application/kafka"
+	ckafka "github.com/confluentinc/confluent-kafka-go/kafka"
+	"github.com/joho/godotenv"
 )
 
+func init() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("error loading .env file: %v", err.Error())
+	}
+}
+
 func main() {
-  testRoute := route.Route {
-    ID: "1",
-    ClientID: "12",
-  }
+  msgChan := make(chan *ckafka.Message)
+  consumer := kafka.NewKafkaConsumer(msgChan)
+  go consumer.Consume()
 
-  testRoute.LoadPositions()
-  positions, err := testRoute.ExportPositionsAsJson()
-
-  if err != nil {
-    log.Fatal(err)
-  }
-
-  for _, pos := range positions {
-    fmt.Println(pos)
+  for msg := range msgChan {
+    fmt.Println("messge received: " + string(msg.Value))
+    go kafkaprod.Produce(msg)
   }
 }
