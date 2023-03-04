@@ -6,6 +6,9 @@ export type RouteDocument = Route & Document
 @Schema()
 export class Route {
   @Prop()
+  _id: string
+
+  @Prop()
   title: string
 
   @Prop(
@@ -14,7 +17,7 @@ export class Route {
       lng: Number
     }),
   )
-  startPositon: { lat: number; lng: number }
+  startPosition: { lat: number; lng: number }
 
   @Prop(
     raw({

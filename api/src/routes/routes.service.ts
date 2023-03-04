@@ -15,8 +15,14 @@ export class RoutesService {
     return 'This action adds a new route';
   }
 
-  findAll() {
-    return this.routeModel.find().exec()
+  async findAll() {
+    const routes = await this.routeModel.find().exec()
+    return routes.map(obj => ({
+      id: obj._id,
+      title: obj.title,
+      startPosition: obj.startPosition,
+      endPosition: obj.endPosition
+    }))
   }
 
   findOne(id: number) {
