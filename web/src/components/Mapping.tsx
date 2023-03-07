@@ -4,9 +4,23 @@ import { FormEvent, useCallback, useEffect, useRef, useState } from "react"
 import { getCurrentPositon } from "../utils/geolocation";
 import { makeCarIcon, makeMarkerIcon, Map } from "../utils/map";
 import { Route } from "../utils/models";
+import { sample } from 'lodash'
 
 const API_URL = process.env.REACT_APP_API_URL
 const googleMapsLoader = new Loader(process.env.REACT_APP_GOOGLE_API_KEY)
+
+const colors = [
+  "#b71c1c",
+  "#4a148c",
+  "#2e7d32",
+  "#e65100",
+  "#2962ff",
+  "#c2185b",
+  "#FFCD00",
+  "#3e2723",
+  "#03a9f4",
+  "#827717",
+];
 
 export const Mapping = () => {
   const [routes, setRoutes] = useState<Route[]>([])
@@ -45,15 +59,16 @@ export const Mapping = () => {
   const startRoute = useCallback((event: FormEvent) => {
     event.preventDefault()
     const route = routes.find(route => route.id === routeIdSelected)
+    const randomColor = sample(colors) as string
 
     mapRef.current?.addRoute(routeIdSelected, {
       currentMarkerOptions: {
         position: route?.startPosition,
-        icon: makeCarIcon('#000')
+        icon: makeCarIcon(randomColor)
       },
       endMarkerOptions: {
         position: route?.endPosition,
-        icon: makeMarkerIcon('#000')
+        icon: makeMarkerIcon(randomColor)
       }
     })
   }, [routes, routeIdSelected])
