@@ -29,6 +29,21 @@ export class Map {
       currentMarkerOptions: {...currentMarkerOptions, map: this.map},
       endMarkerOptions: {...endMarkerOptions, map: this.map},
     })
+
+    this.fitBounds()
+  }
+
+  private fitBounds() {
+    const bounds = new google.maps.LatLngBounds()
+
+    Object.keys(this.routes).forEach((id: string) => {
+      const route = this.routes[id]
+
+      bounds.extend(route.currentMarker.getPosition() as any)
+      bounds.extend(route.endMarker.getPosition() as any)
+    })
+
+    this.map.fitBounds(bounds)
   }
 } 
 
