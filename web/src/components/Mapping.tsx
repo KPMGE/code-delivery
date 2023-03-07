@@ -1,12 +1,16 @@
 import { Button, Grid, MenuItem, Select } from "@material-ui/core"
-import { FormEvent, useCallback, useEffect, useState } from "react"
+import { Loader } from "google-maps";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react"
+import { getCurrentPositon } from "../utils/geolocation";
 import { Route } from "../utils/models";
 
 const API_URL = process.env.REACT_APP_API_URL
+const googleMapsLoader = new Loader(process.env.REACT_APP_GOOGLE_API_KEY)
 
 export const Mapping = () => {
   const [routes, setRoutes] = useState<Route[]>([])
   const [routeIdSelected, setRouteIdSelected] = useState<string>('')
+  const mapRef = useRef<google.maps.Map>()
 
   useEffect(() => {
     const fetchRoutes = async () => {
@@ -23,10 +27,24 @@ export const Mapping = () => {
     fetchRoutes()
   }, [])
 
+  useEffect(() => {
+    (async () => {
+      const [, position] = await Promise.all([
+        googleMapsLoader.load(), 
+        getCurrentPositon({ enableHighAccuracy: true })
+      ])
+      const divMap = document.getElementById('map') as HTMLElement
+      mapRef.current = new google.maps.Map(divMap, {
+        zoom: 15,
+        center: position
+      })
+    })()
+
+  }, [])
+
   const startRoute = useCallback((event: FormEvent) => {
     event.preventDefault()
-    // console.log('routeIdSelected: ', routeIdSelected)
-  }, [routeIdSelected])
+  }, [])
 
   return (
     <Grid container>
@@ -47,7 +65,9 @@ export const Mapping = () => {
           </Button>
         </form>
       </Grid>
-      <Grid item xs={12} sm={3}>Mapa</Grid>
+      <Grid item xs={12} sm={9}>
+        <div id='map' style={{ width: '100%', height: '100vh' }}></div>
+      </Grid>
     </Grid>
   )
 }
