@@ -1,4 +1,4 @@
-import { Button, Grid, MenuItem, Select } from "@material-ui/core"
+import { Button, Grid, makeStyles, MenuItem, Select } from "@material-ui/core"
 import { Loader } from "google-maps";
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react"
 import { getCurrentPositon } from "../utils/geolocation";
@@ -24,7 +24,26 @@ const colors = [
   "#827717",
 ];
 
+const useStyles = makeStyles({
+  root: {
+    width: '100%',
+    height: '100%',
+  },
+  form: {
+    margin: '16px',
+  },
+  btnSubmitWrapper: {
+    textAlign: 'center',
+    marginTop: '8px'
+  },
+  map: {
+    width: '100%',
+    height: '100%',
+  },
+})
+
 export const Mapping = () => {
+  const styles = useStyles()
   const [routes, setRoutes] = useState<Route[]>([])
   const [routeIdSelected, setRouteIdSelected] = useState<string>('')
   const mapRef = useRef<Map>()
@@ -87,9 +106,9 @@ export const Mapping = () => {
   }, [routes, routeIdSelected])
 
   return (
-    <Grid container>
+    <Grid className={styles.root} container>
       <Grid item xs={12} sm={3}>
-        <form onSubmit={startRoute}>
+        <form onSubmit={startRoute} className={styles.form}>
           <Select
             fullWidth
             displayEmpty
@@ -100,13 +119,15 @@ export const Mapping = () => {
             {routes.map((route, key) => <MenuItem key={key} value={route.id}>{route.title}</MenuItem>)}
           </Select>
 
-          <Button type='submit' color='primary' variant='contained'>
-            Iniciar corrida
-          </Button>
+          <div className={styles.btnSubmitWrapper}>
+            <Button type='submit' color='primary' variant='contained'>
+              Iniciar corrida
+            </Button>
+          </div>
         </form>
       </Grid>
       <Grid item xs={12} sm={9}>
-        <div id='map' style={{ width: '100%', height: '100vh' }}></div>
+        <div id='map' className={styles.map}></div>
       </Grid>
     </Grid>
   )
