@@ -1,3 +1,37 @@
+
+type MarkerOptions = {
+  currentMarkerOptions: google.maps.ReadonlyMarkerOptions
+  endMarkerOptions: google.maps.ReadonlyMarkerOptions
+}
+
+export class Route {
+  public currentMarker: google.maps.Marker
+  public endMarker: google.maps.Marker
+
+  constructor(options: MarkerOptions) {
+    const {currentMarkerOptions, endMarkerOptions} = options
+    this.currentMarker = new google.maps.Marker(currentMarkerOptions)
+    this.endMarker = new google.maps.Marker(endMarkerOptions)
+  }
+}
+
+export class Map {
+  public map: google.maps.Map
+  private routes: { [id: string]: Route } = {};
+
+  constructor(element: Element, options: google.maps.MapOptions) {
+    this.map  = new google.maps.Map(element, options)
+  }
+
+  addRoute(id: string, routeOptions: MarkerOptions) {
+    const {currentMarkerOptions, endMarkerOptions} = routeOptions
+    this.routes[id] = new Route({
+      currentMarkerOptions: {...currentMarkerOptions, map: this.map},
+      endMarkerOptions: {...endMarkerOptions, map: this.map},
+    })
+  }
+} 
+
 export const makeCarIcon = (color: string) => (
   {
     path:

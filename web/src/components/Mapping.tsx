@@ -2,7 +2,7 @@ import { Button, Grid, MenuItem, Select } from "@material-ui/core"
 import { Loader } from "google-maps";
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react"
 import { getCurrentPositon } from "../utils/geolocation";
-import { makeCarIcon, makeMarkerIcon } from "../utils/map";
+import { makeCarIcon, makeMarkerIcon, Map } from "../utils/map";
 import { Route } from "../utils/models";
 
 const API_URL = process.env.REACT_APP_API_URL
@@ -11,7 +11,7 @@ const googleMapsLoader = new Loader(process.env.REACT_APP_GOOGLE_API_KEY)
 export const Mapping = () => {
   const [routes, setRoutes] = useState<Route[]>([])
   const [routeIdSelected, setRouteIdSelected] = useState<string>('')
-  const mapRef = useRef<google.maps.Map>()
+  const mapRef = useRef<Map>()
 
   useEffect(() => {
     const fetchRoutes = async () => {
@@ -35,27 +35,26 @@ export const Mapping = () => {
         getCurrentPositon({ enableHighAccuracy: true })
       ])
       const divMap = document.getElementById('map') as HTMLElement
-      mapRef.current = new google.maps.Map(divMap, {
+      mapRef.current = new Map(divMap, {
         zoom: 15,
         center: position
       })
     })()
-
   }, [])
 
   const startRoute = useCallback((event: FormEvent) => {
     event.preventDefault()
     const route = routes.find(route => route.id === routeIdSelected)
-    new google.maps.Marker({
-      position: route?.startPosition,
-      map: mapRef.current,
-      icon: makeCarIcon('#000')
-    })
 
-    new google.maps.Marker({
-      position: route?.endPosition,
-      icon: makeMarkerIcon('#000'),
-      map: mapRef.current,
+    mapRef.current?.addRoute(routeIdSelected, {
+      currentMarkerOptions: {
+        position: route?.startPosition,
+        icon: makeCarIcon('#000')
+      },
+      endMarkerOptions: {
+        position: route?.endPosition,
+        icon: makeMarkerIcon('#000')
+      }
     })
   }, [routes, routeIdSelected])
 
