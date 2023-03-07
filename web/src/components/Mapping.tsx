@@ -7,6 +7,7 @@ import { Route } from "../utils/models";
 import { sample } from 'lodash'
 import { useSnackbar } from "notistack";
 import { RouteExistsError } from "../errors/route-exists-error";
+import { NavBar } from "./NavBar";
 
 const API_URL = process.env.REACT_APP_API_URL
 const googleMapsLoader = new Loader(process.env.REACT_APP_GOOGLE_API_KEY)
@@ -108,6 +109,7 @@ export const Mapping = () => {
   return (
     <Grid className={styles.root} container>
       <Grid item xs={12} sm={3}>
+        <NavBar />
         <form onSubmit={startRoute} className={styles.form}>
           <Select
             fullWidth
