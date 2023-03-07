@@ -1,4 +1,3 @@
-
 type MarkerOptions = {
   currentMarkerOptions: google.maps.ReadonlyMarkerOptions
   endMarkerOptions: google.maps.ReadonlyMarkerOptions
@@ -7,11 +6,44 @@ type MarkerOptions = {
 export class Route {
   public currentMarker: google.maps.Marker
   public endMarker: google.maps.Marker
+  private directionsRenderer: google.maps.DirectionsRenderer
 
   constructor(options: MarkerOptions) {
     const {currentMarkerOptions, endMarkerOptions} = options
     this.currentMarker = new google.maps.Marker(currentMarkerOptions)
     this.endMarker = new google.maps.Marker(endMarkerOptions)
+
+    const strokeColor = (this.currentMarker.getIcon() as google.maps.ReadonlySymbol).strokeColor
+    this.directionsRenderer = new google.maps.DirectionsRenderer({
+      suppressMarkers: true,
+      polylineOptions: {
+        strokeColor,
+        strokeOpacity: 0.5,
+        strokeWeight: 5
+      }
+    })
+    this.directionsRenderer.setMap(
+      this.currentMarker.getMap() as google.maps.Map
+    )
+
+    this.calculateRoute()
+  }
+
+  private calculateRoute() {
+    const currentPositon = this.currentMarker.getPosition() as google.maps.LatLng
+    const endPositon = this.endMarker.getPosition() as google.maps.LatLng
+
+    new google.maps.DirectionsService().route({
+      origin: currentPositon,
+      destination: endPositon,
+      travelMode: google.maps.TravelMode.DRIVING
+    }, (result, status) => {
+        if (status === 'OK') {
+          this.directionsRenderer.setDirections(result)
+          return
+        }
+        throw new Error(status)
+    })
   }
 }
 
@@ -24,6 +56,7 @@ export class Map {
   }
 
   addRoute(id: string, routeOptions: MarkerOptions) {
+
     const {currentMarkerOptions, endMarkerOptions} = routeOptions
     this.routes[id] = new Route({
       currentMarkerOptions: {...currentMarkerOptions, map: this.map},
