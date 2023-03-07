@@ -5,6 +5,8 @@ import { getCurrentPositon } from "../utils/geolocation";
 import { makeCarIcon, makeMarkerIcon, Map } from "../utils/map";
 import { Route } from "../utils/models";
 import { sample } from 'lodash'
+import { useSnackbar } from "notistack";
+import { RouteExistsError } from "../errors/route-exists-error";
 
 const API_URL = process.env.REACT_APP_API_URL
 const googleMapsLoader = new Loader(process.env.REACT_APP_GOOGLE_API_KEY)
@@ -26,6 +28,7 @@ export const Mapping = () => {
   const [routes, setRoutes] = useState<Route[]>([])
   const [routeIdSelected, setRouteIdSelected] = useState<string>('')
   const mapRef = useRef<Map>()
+  const { enqueueSnackbar } = useSnackbar()
 
   useEffect(() => {
     const fetchRoutes = async () => {
@@ -61,16 +64,26 @@ export const Mapping = () => {
     const route = routes.find(route => route.id === routeIdSelected)
     const randomColor = sample(colors) as string
 
-    mapRef.current?.addRoute(routeIdSelected, {
-      currentMarkerOptions: {
-        position: route?.startPosition,
-        icon: makeCarIcon(randomColor)
-      },
-      endMarkerOptions: {
-        position: route?.endPosition,
-        icon: makeMarkerIcon(randomColor)
+    try {
+      mapRef.current?.addRoute(routeIdSelected, {
+        currentMarkerOptions: {
+          position: route?.startPosition,
+          icon: makeCarIcon(randomColor)
+        },
+        endMarkerOptions: {
+          position: route?.endPosition,
+          icon: makeMarkerIcon(randomColor)
+        }
+      })
+    } catch (error) {
+      if (error instanceof RouteExistsError) {
+        enqueueSnackbar(`${route?.title} already added, wait it to finish`, {
+          variant: 'error'
+        })
+        return
       }
-    })
+      throw error
+    }
   }, [routes, routeIdSelected])
 
   return (

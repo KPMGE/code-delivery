@@ -1,3 +1,5 @@
+import { RouteExistsError } from "../errors/route-exists-error"
+
 type MarkerOptions = {
   currentMarkerOptions: google.maps.ReadonlyMarkerOptions
   endMarkerOptions: google.maps.ReadonlyMarkerOptions
@@ -56,6 +58,9 @@ export class Map {
   }
 
   addRoute(id: string, routeOptions: MarkerOptions) {
+    if (id in this.routes) {
+      throw new RouteExistsError()
+    }
 
     const {currentMarkerOptions, endMarkerOptions} = routeOptions
     this.routes[id] = new Route({
