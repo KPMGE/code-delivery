@@ -11,7 +11,7 @@ export class Route {
   private directionsRenderer: google.maps.DirectionsRenderer
 
   constructor(options: MarkerOptions) {
-    const {currentMarkerOptions, endMarkerOptions} = options
+    const { currentMarkerOptions, endMarkerOptions } = options
     this.currentMarker = new google.maps.Marker(currentMarkerOptions)
     this.endMarker = new google.maps.Marker(endMarkerOptions)
 
@@ -31,6 +31,12 @@ export class Route {
     this.calculateRoute()
   }
 
+  delete() {
+    this.currentMarker.setMap(null)
+    this.endMarker.setMap(null)
+    this.directionsRenderer.setMap(null)
+  }
+
   private calculateRoute() {
     const currentPositon = this.currentMarker.getPosition() as google.maps.LatLng
     const endPositon = this.endMarker.getPosition() as google.maps.LatLng
@@ -40,11 +46,11 @@ export class Route {
       destination: endPositon,
       travelMode: google.maps.TravelMode.DRIVING
     }, (result, status) => {
-        if (status === 'OK') {
-          this.directionsRenderer.setDirections(result)
-          return
-        }
-        throw new Error(status)
+      if (status === 'OK') {
+        this.directionsRenderer.setDirections(result)
+        return
+      }
+      throw new Error(status)
     })
   }
 }
@@ -54,11 +60,17 @@ export class Map {
   private routes: { [id: string]: Route } = {};
 
   constructor(element: Element, options: google.maps.MapOptions) {
-    this.map  = new google.maps.Map(element, options)
+    this.map = new google.maps.Map(element, options)
   }
 
   moveCurrentMarker(id: string, position: google.maps.LatLngLiteral) {
     this.routes[id].currentMarker.setPosition(position)
+  }
+
+  removeRoute(id: string) {
+    const route = this.routes[id]
+    route.delete()
+    delete this.routes[id]
   }
 
   addRoute(id: string, routeOptions: MarkerOptions) {
@@ -66,10 +78,10 @@ export class Map {
       throw new RouteExistsError()
     }
 
-    const {currentMarkerOptions, endMarkerOptions} = routeOptions
+    const { currentMarkerOptions, endMarkerOptions } = routeOptions
     this.routes[id] = new Route({
-      currentMarkerOptions: {...currentMarkerOptions, map: this.map},
-      endMarkerOptions: {...endMarkerOptions, map: this.map},
+      currentMarkerOptions: { ...currentMarkerOptions, map: this.map },
+      endMarkerOptions: { ...endMarkerOptions, map: this.map },
     })
 
     this.fitBounds()
@@ -87,7 +99,7 @@ export class Map {
 
     this.map.fitBounds(bounds)
   }
-} 
+}
 
 export const makeCarIcon = (color: string) => (
   {

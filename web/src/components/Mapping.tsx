@@ -52,6 +52,15 @@ export const Mapping = () => {
   const socketIoRef = useRef<any>()
   const { enqueueSnackbar } = useSnackbar()
 
+  const finishRoute = useCallback((route: Route) => {
+    mapRef.current?.removeRoute(route.id)
+
+    enqueueSnackbar(`${route.title} finished`, {
+      variant: 'success'
+    })
+  }, [enqueueSnackbar])
+
+
   useEffect(() => {
     if (!socketIoRef.current?.connected) {
       socketIoRef.current = io(API_URL, { transports: ['websocket'] });
@@ -66,9 +75,9 @@ export const Mapping = () => {
         lng: data.position[1]
       })
 
-      // const route = routes.find(route => route.id === data.routeId) as Route
+      const route = routes.find(route => route.id === data.routeId) as Route
       if (data.finished) {
-        console.log('route finished')
+        finishRoute(route)
       }
     }
 
@@ -77,7 +86,7 @@ export const Mapping = () => {
       socketIoRef.current?.off('new-position', handler)
     }
 
-  }, [routes, routeIdSelected])
+  }, [finishRoute, routes, routeIdSelected])
 
 
   useEffect(() => {
