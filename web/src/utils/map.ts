@@ -57,6 +57,10 @@ export class Map {
     this.map  = new google.maps.Map(element, options)
   }
 
+  moveCurrentMarker(id: string, position: google.maps.LatLngLiteral) {
+    this.routes[id].currentMarker.setPosition(position)
+  }
+
   addRoute(id: string, routeOptions: MarkerOptions) {
     if (id in this.routes) {
       throw new RouteExistsError()

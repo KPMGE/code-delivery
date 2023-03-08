@@ -3,11 +3,12 @@ import { Loader } from "google-maps";
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react"
 import { getCurrentPositon } from "../utils/geolocation";
 import { makeCarIcon, makeMarkerIcon, Map } from "../utils/map";
-import { Route } from "../utils/models";
+import { Route, RouteData } from "../utils/models";
 import { sample } from 'lodash'
 import { useSnackbar } from "notistack";
 import { RouteExistsError } from "../errors/route-exists-error";
 import { NavBar } from "./NavBar";
+import io from 'socket.io-client'
 
 const API_URL = process.env.REACT_APP_API_URL
 const googleMapsLoader = new Loader(process.env.REACT_APP_GOOGLE_API_KEY)
@@ -48,7 +49,36 @@ export const Mapping = () => {
   const [routes, setRoutes] = useState<Route[]>([])
   const [routeIdSelected, setRouteIdSelected] = useState<string>('')
   const mapRef = useRef<Map>()
+  const socketIoRef = useRef<any>()
   const { enqueueSnackbar } = useSnackbar()
+
+  useEffect(() => {
+    if (!socketIoRef.current?.connected) {
+      socketIoRef.current = io(API_URL, { transports: ['websocket'] });
+      socketIoRef.current.on('connect', () => console.log('websocket connected!'))
+    }
+
+    const handler = (data: RouteData) => {
+      console.log('data on handler: ', data)
+
+      mapRef.current?.moveCurrentMarker(data.routeId, {
+        lat: data.position[0],
+        lng: data.position[1]
+      })
+
+      // const route = routes.find(route => route.id === data.routeId) as Route
+      if (data.finished) {
+        console.log('route finished')
+      }
+    }
+
+    socketIoRef.current?.on('new-position', handler)
+    return () => {
+      socketIoRef.current?.off('new-position', handler)
+    }
+
+  }, [routes, routeIdSelected])
+
 
   useEffect(() => {
     const fetchRoutes = async () => {
@@ -95,6 +125,11 @@ export const Mapping = () => {
           icon: makeMarkerIcon(randomColor)
         }
       })
+
+
+      socketIoRef.current.emit('new-direction', {
+        routeId: routeIdSelected
+      })
     } catch (error) {
       if (error instanceof RouteExistsError) {
         enqueueSnackbar(`${route?.title} already added, wait it to finish`, {
@@ -104,7 +139,7 @@ export const Mapping = () => {
       }
       throw error
     }
-  }, [routes, routeIdSelected])
+  }, [routes, routeIdSelected, enqueueSnackbar])
 
   return (
     <Grid className={styles.root} container>

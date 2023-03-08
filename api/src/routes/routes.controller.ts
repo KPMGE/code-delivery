@@ -4,25 +4,29 @@ import { CreateRouteDto } from './dto/create-route.dto';
 import { UpdateRouteDto } from './dto/update-route.dto';
 import { ClientKafka, MessagePattern, Payload } from '@nestjs/microservices';
 import { Producer } from 'kafkajs';
-
+import { Server } from 'socket.io'
+import { WebSocketServer } from '@nestjs/websockets';
+import { RoutesGateway } from './routes/routes.gateway';
 
 type KafkaMessage = {
-  value: {
-    routeId: string
-    clientId: string
-    position: [number, number]
-    finished: boolean
-  }
+  routeId: string
+  clientId: string
+  position: [number, number]
+  finished: boolean
 };
 
 @Controller('routes')
 export class RoutesController implements OnModuleInit {
   private kafkaProducer: Producer
 
+  @WebSocketServer()
+  server: Server
+
   constructor(
     private readonly routesService: RoutesService,
     @Inject('KAFKA_SERVICE')
-    private readonly kafkaClient: ClientKafka
+    private readonly kafkaClient: ClientKafka,
+    private routesGateway: RoutesGateway
   ) {}
 
   async onModuleInit() {
@@ -69,6 +73,7 @@ export class RoutesController implements OnModuleInit {
 
   @MessagePattern('route.new-position')
   consumeNewPosition(@Payload() message: KafkaMessage) {
-    console.log(message)
+    console.log('new message: ', message)
+    this.routesGateway.sendPosition(message)
   }
 }

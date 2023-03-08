@@ -9,3 +9,9 @@ export type Route = {
   startPosition: Position
   endPosition: Position
 }
+
+export type RouteData = {
+  routeId: string
+  position: [number, number]
+  finished: boolean
+}
